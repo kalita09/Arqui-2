@@ -37,8 +37,10 @@ public class Nucleo implements Runnable {
         static int quantum;
         static int ciclosReloj;
         static Semaphore busInstrucciones;
+        boolean falloCache;
+        int contCiclosFallo;
         
-	public Nucleo(String nombre, CyclicBarrier barrier,Memoria memoria,int bloqueInicio,int quantum) {
+	public Nucleo(String nombre, CyclicBarrier barrier,Memoria memoria,int bloqueInicio,int quantum, Semaphore busInstrucciones) {
 		this.nombreNucleo = nombre;
                 this.barrier = barrier;
 		this.registros = new int[32];
@@ -56,7 +58,9 @@ public class Nucleo implements Runnable {
                 this.terminado = false;
                 Nucleo.quantum = quantum;
                 Nucleo.ciclosReloj = ciclosReloj;
-                this.busInstrucciones = new Semaphore(1);
+                this.busInstrucciones = busInstrucciones;
+                this.falloCache = false;
+                this.contCiclosFallo = 80;
 	}
 	
 	private void inicializarCaches() {
@@ -123,28 +127,27 @@ public class Nucleo implements Runnable {
             try {
             System.out.print("pc"+this.PC+"bloque inicio "+this.bloqueInicio);
             //fallo de cache nucleo 1 (falta el bus)
-            if(!this.contenerBloque()) {   
-                System.out.print("hay fallo");
-	            //esto debe ir en un ciclo hasta q se acaben los ciclos
-                /*
-                busInstrucciones.acquire();
-                    try{
-
-                    }finally{
-                         busInstrucciones.release();
-
-                    }
-                        */
+            if(this.contenerBloque() && !this.falloCache) {
+                this.ejecutarInstruccion();
+            } else if(this.falloCache) {
+            	contCiclosFallo--;
+            	if(contCiclosFallo<=1) {
+            		falloCache = false;
+            		contCiclosFallo = 80;
+            		busInstrucciones.release();
+            	}
+            } else {
             	Bloque b1 = this.memoria.getBloque(this.bloqueInicio+this.PC/4);
-                System.out.print("cargando"+this.bloqueInicio+this.PC/4+".");
-            	this.cargarBloque(b1);
-                this.ejecutarInstruccion();
-                this.barrier.await();
-            }else{
-                this.ejecutarInstruccion();
-                this.barrier.await();
-            
+            	cargarBloque(b1);
+            	System.out.print("cargando"+this.bloqueInicio+this.PC/4+".");
+            	System.out.print("hay fallo");                
+                if(busInstrucciones.tryAcquire()){
+                	falloCache = true;
+                    contCiclosFallo--;
+                }
             }
+            
+            this.barrier.await();
             
             
             } catch (InterruptedException ex) {
