@@ -19,6 +19,7 @@ public class Nucleo implements Runnable {
         //Contexto
 	int PC;
         int[] registros;
+        int numInstruccion;
         
         String IR;
 	Bloque[] cacheInstrucciones;
@@ -73,12 +74,9 @@ public class Nucleo implements Runnable {
 	}
 	
 	public void cargarBloque(Bloque b) {
-		cacheInstrucciones[apuntadorCache] = b;
-		if(apuntadorCache<=7) {
-			apuntadorCache++;
-		} else {
-			apuntadorCache = 0;
-		}
+                cacheInstrucciones[b.ID%this.BLOQUES].ID = b.ID;
+		cacheInstrucciones[b.ID%this.BLOQUES] = b;
+                
 	}
         void setPC(int miPC){
             this.PC = miPC;
@@ -109,6 +107,7 @@ public class Nucleo implements Runnable {
 	
 	public boolean contenerBloque() {
 		for(int i=0; i<BLOQUES; i++) {
+                   // (this.PC/4)%this.BLOQUES
 			if(cacheInstrucciones[i].getID() == this.bloqueInicio+this.PC/4) { // PC/4 nos da el numero de bloque
 				return true;
 			}
@@ -127,6 +126,7 @@ public class Nucleo implements Runnable {
 
     @Override
     public void run() {
+        /*
         while(seguir){
         System.out.println(this.nombreNucleo);
             try {
@@ -151,8 +151,8 @@ public class Nucleo implements Runnable {
                 Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-        }
-/*
+        }*/
+
         while(seguir){
         System.out.println(this.nombreNucleo);
             try {
@@ -169,9 +169,13 @@ public class Nucleo implements Runnable {
             		busInstrucciones.release();
             	}
             } else {
-            	Bloque b1 = this.memoria.getBloque(this.bloqueInicio+this.PC/4);
-             
+
+
                 if(busInstrucciones.tryAcquire()){
+                	Bloque b1 = this.memoria.getBloque(this.bloqueInicio+this.PC/4);
+                	cargarBloque(b1);
+                	System.out.print("cargando"+this.bloqueInicio+this.PC/4+".");
+                	System.out.print("hay fallo");
                 	falloCache = true;
                     contCiclosFallo--;
                                 	cargarBloque(b1);
@@ -180,22 +184,25 @@ public class Nucleo implements Runnable {
                 }
             }
             
-            this.barrier.await();
-            
+            try {
+            	this.barrier.await();
+            } catch(BrokenBarrierException ex) {}
 
             
             } catch (InterruptedException ex) {
                 Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (BrokenBarrierException ex) {
-                Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-        }*/
+        }
     }
 	
 	public void ejecutarInstruccion() {
             //Bloque donde se encuentra la instruccion apuntada por el PC actual, previamente cargada
-		Bloque b = cacheInstrucciones[this.PC/4];
+
+		Bloque b = cacheInstrucciones[(this.PC/4)%this.BLOQUES];
+
+		//Bloque b = cacheInstrucciones[numInstruccion/4];
+
             //Intruccion del bloque (0|1|2|3) 
                 
              //Pido instruccion al cache la guardo en el IR  
