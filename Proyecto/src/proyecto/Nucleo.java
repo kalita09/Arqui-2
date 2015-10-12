@@ -74,7 +74,6 @@ public class Nucleo implements Runnable {
 	}
 	
 	public void cargarBloque(Bloque b) {
-                cacheInstrucciones[b.ID%this.BLOQUES].ID = b.ID;
 		cacheInstrucciones[b.ID%this.BLOQUES] = b;
                 
 	}
