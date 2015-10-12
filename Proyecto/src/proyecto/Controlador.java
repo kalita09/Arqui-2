@@ -30,6 +30,7 @@ public class Controlador implements Runnable{
     static int numNUCLEOS = 2;
 
     static Semaphore busInstrucciones;
+
     
 	public Controlador(int tamanoCola,int quantum) {
             colaEspera = new int[4][tamanoCola];
@@ -42,7 +43,9 @@ public class Controlador implements Runnable{
             hiloActual2 = 2;
             this.quantum = quantum;
             this.ciclosReloj = ciclosReloj;
+
             this.busInstrucciones = new Semaphore(1);
+
 	}
 	
         void iniciar(){
@@ -63,17 +66,7 @@ public class Controlador implements Runnable{
                 m.setLength();
                 
             }
-            /*
-            for(int j = 1; j <= numeroHilos; j++ ){ 
-                int length = 0;
-                //Tamano maximo PC
-                //bloque hilo siguiente
-                length += colaEspera[0][j]*16;
-                //bloque hilo siguiente
-                length += colaEspera[1][j]*4;
-                colaEspera[2][j-1]=length;
-            
-            }*/
+
             /*
             for(int j = 0; j < numeroHilos; j++ ){   
 

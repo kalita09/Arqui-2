@@ -62,7 +62,7 @@ public class Bloque {
                 //}else{
                 	try {
                     	instrucciones [numeroInstruccion][j] = Integer.parseInt(codificacion[j].trim());
-                    	System.out.println("ENTRO"+numeroInstruccion+codificacion[j]);
+                    	//System.out.println("ENTRO"+numeroInstruccion+codificacion[j]);
                     	} catch(NumberFormatException | ArrayIndexOutOfBoundsException ex) {
                     		System.out.println("Intentando acceder posicion invalida del vector");
                     	}

@@ -112,7 +112,7 @@ public class Memoria {
                 
             }
         }
-        int getPosicion(){
+    int getPosicion(){
             return this.posInicio;
         }
         int getLength(){

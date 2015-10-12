@@ -81,7 +81,7 @@ public class Nucleo implements Runnable {
 		}
 	}
         void setPC(int miPC){
-            PC = miPC;
+            this.PC = miPC;
         }
         int getPC(){
             return this.PC;
@@ -109,7 +109,7 @@ public class Nucleo implements Runnable {
 	
 	public boolean contenerBloque() {
 		for(int i=0; i<BLOQUES; i++) {
-			if(cacheInstrucciones[i].getID() == this.bloqueInicio+PC/4) { // PC/4 nos da el numero de bloque
+			if(cacheInstrucciones[i].getID() == this.bloqueInicio+this.PC/4) { // PC/4 nos da el numero de bloque
 				return true;
 			}
 		}
@@ -127,7 +127,32 @@ public class Nucleo implements Runnable {
 
     @Override
     public void run() {
-
+        while(seguir){
+        System.out.println(this.nombreNucleo);
+            try {
+            //fallo de cache nucleo 1 (falta el bus)
+            if(!this.contenerBloque()) {   
+                System.out.print("hay fallo");
+	            //esto debe ir en un ciclo hasta q se acaben los ciclos
+            	Bloque b1 = this.memoria.getBloque(this.bloqueInicio+this.PC/4);
+            	this.cargarBloque(b1);
+                this.ejecutarInstruccion();
+                this.barrier.await();
+            }else{
+                this.ejecutarInstruccion();
+                this.barrier.await();
+            
+            }
+            
+            
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (BrokenBarrierException ex) {
+                Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+/*
         while(seguir){
         System.out.println(this.nombreNucleo);
             try {
@@ -145,12 +170,13 @@ public class Nucleo implements Runnable {
             	}
             } else {
             	Bloque b1 = this.memoria.getBloque(this.bloqueInicio+this.PC/4);
-            	cargarBloque(b1);
-            	System.out.print("cargando"+this.bloqueInicio+this.PC/4+".");
-            	System.out.print("hay fallo");                
+             
                 if(busInstrucciones.tryAcquire()){
                 	falloCache = true;
                     contCiclosFallo--;
+                                	cargarBloque(b1);
+            	System.out.print("cargando"+this.bloqueInicio+this.PC/4+".");
+            	System.out.print("hay fallo");   
                 }
             }
             
@@ -164,16 +190,16 @@ public class Nucleo implements Runnable {
                 Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-        }
+        }*/
     }
 	
 	public void ejecutarInstruccion() {
             //Bloque donde se encuentra la instruccion apuntada por el PC actual, previamente cargada
-		Bloque b = cacheInstrucciones[PC/4];
+		Bloque b = cacheInstrucciones[this.PC/4];
             //Intruccion del bloque (0|1|2|3) 
                 
              //Pido instruccion al cache la guardo en el IR  
-		IR = b.getInstruccion(PC%4);
+		IR = b.getInstruccion(this.PC%4);
              
 		String[] codificacion = IR.split(" ");
 		System.out.println(codificacion[0]);
@@ -207,26 +233,26 @@ public class Nucleo implements Runnable {
 			
 			case "4": //BEQZ
 				if(Integer.parseInt(codificacion[1]) == 0) {
-					PC += Integer.parseInt(codificacion[3]); //multiplicado*4???????????????
+					this.PC += Integer.parseInt(codificacion[3]); //multiplicado*4???????????????
 				}
 			break;
 			
 			case "5": //BNEZ
 				if(Integer.parseInt(codificacion[1]) != 0) {
-					PC += Integer.parseInt(codificacion[3]); //multiplicado*4???????????????
+					this.PC += Integer.parseInt(codificacion[3]); //multiplicado*4???????????????
 				}
 			break;
 			
 			case "3": //JAL
-				registros[31] = PC;
-				PC += Integer.parseInt(codificacion[3]);
+				registros[31] = this.PC;
+				this.PC += Integer.parseInt(codificacion[3]);
 			break;
 			
 			case "2": //JR
-				PC = Integer.parseInt(codificacion[1]);
+				this.PC = Integer.parseInt(codificacion[1]);
 			break;
 		}
-		PC++;
+		this.PC++;
 	}
 	
 }
