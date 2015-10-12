@@ -21,7 +21,7 @@ public class Memoria {
     int bloque = 0;
     int posInicio;
     int inst = 0;
-        
+    int length =0;
         
 	public Memoria() {
 		this.memoria = new Bloque[BLOQUES];
@@ -71,11 +71,11 @@ public class Memoria {
                             codificacion = linea.split(" ");
                            //System.out.print("bloque"+bloque);
                             memoria[bloque].guardarDatos(inst, codificacion);
-                            
+                            this.length += 4;
                             inst++;
                             }else{
                                 seguir = false;
-                            
+                                
                             }
                             
                             if(inst==4){
@@ -86,7 +86,7 @@ public class Memoria {
                         }
                      }
                     // this.imprimirMem();
-                    
+
                      
                   }
                   catch(Exception e){
@@ -102,7 +102,7 @@ public class Memoria {
                   }
 
             //}
-         
+        this.length -= 1; //El PC comienza en 0
         return bloqueInicio;   
 	}
         void imprimirMem(){
@@ -115,7 +115,12 @@ public class Memoria {
         int getPosicion(){
             return this.posInicio;
         }
-        
+        int getLength(){
+            return this.length;
+        }
+        void setLength(){
+            this.length = 0;
+        }
         public Bloque getBloque(int numBloque) {
         	return memoria[numBloque];
         }

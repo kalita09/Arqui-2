@@ -37,8 +37,9 @@ public class Nucleo implements Runnable {
         static int quantum;
         static int ciclosReloj;
         static Semaphore busInstrucciones;
+        int pcFin;
         
-	public Nucleo(String nombre, CyclicBarrier barrier,Memoria memoria,int bloqueInicio,int quantum) {
+	public Nucleo(String nombre, CyclicBarrier barrier,Memoria memoria,int bloqueInicio,int pcFin,int quantum) {
 		this.nombreNucleo = nombre;
                 this.barrier = barrier;
 		this.registros = new int[32];
@@ -49,9 +50,7 @@ public class Nucleo implements Runnable {
                 this.memoria = memoria;
                 this.inicializarCaches();
                 this.bloqueInicio = bloqueInicio;
-                this.posFin = posFin;
-                this.bloqueFin = bloqueFin;
-                
+                this.pcFin = pcFin;
                 this.seguir = true;
                 this.terminado = false;
                 Nucleo.quantum = quantum;
@@ -80,6 +79,10 @@ public class Nucleo implements Runnable {
         int getPC(){
             return this.PC;
         } 
+        //El nucleo termino el hilo anterior ahora es el length del nuevo hilo
+        void setPCFin(int mipcFin){
+            this.pcFin = mipcFin;
+        }
 	
 	public void imprimirCache(){
             for(int bloque = 0; bloque < 8; bloque++ ){
@@ -125,27 +128,25 @@ public class Nucleo implements Runnable {
             //fallo de cache nucleo 1 (falta el bus)
             if(!this.contenerBloque()) {   
                 System.out.print("hay fallo");
-	            //esto debe ir en un ciclo hasta q se acaben los ciclos
-                /*
-                busInstrucciones.acquire();
-                    try{
 
-                    }finally{
-                         busInstrucciones.release();
-
-                    }
-                        */
             	Bloque b1 = this.memoria.getBloque(this.bloqueInicio+this.PC/4);
                 System.out.print("cargando"+this.bloqueInicio+this.PC/4+".");
             	this.cargarBloque(b1);
                 this.ejecutarInstruccion();
+                if(this.PC > this.pcFin){
+                    terminado = true;
+                }
                 this.barrier.await();
             }else{
                 this.ejecutarInstruccion();
+                if(this.PC > this.pcFin){
+                    terminado = true;
+                }
                 this.barrier.await();
             
             }
             
+
             
             } catch (InterruptedException ex) {
                 Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
