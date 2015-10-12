@@ -83,7 +83,7 @@ public class Controlador implements Runnable{
                 
                 
             }*/
-            this.barrera = new CyclicBarrier(numeroHilos,this);
+            this.barrera = new CyclicBarrier(2,this);
             
             //iniciar vector de nucleos
 
@@ -104,7 +104,8 @@ public class Controlador implements Runnable{
 
             vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
             vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
-            
+            vectorNucleos[0].numInstruccion = 0;
+            vectorNucleos[1].numInstruccion = 0;
 
             System.out.println("Antes registro");
             for(int i=0; i<numNUCLEOS; i++) {
@@ -143,14 +144,14 @@ public class Controlador implements Runnable{
         System.out.println("Quantum"+Nucleo.quantum);
         
         System.out.println("Despues registro");
-            for(int i=0; i<numeroHilos; i++) {
+            for(int i=0; i<2; i++) {
                     System.out.println("Nucleo "+i);
                     vectorNucleos[i].imprimirRegistros();
             }
             
             this.m.imprimirMem();
         System.out.println("Despues cache");
-            for(int i=0; i<numeroHilos; i++){ 
+            for(int i=0; i<2; i++){ 
                     System.out.println("Nucleo "+i);
                     vectorNucleos[i].imprimirCache();
             }
@@ -171,6 +172,7 @@ public class Controlador implements Runnable{
                 vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
                 vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
                 vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
+                vectorNucleos[0].numInstruccion = 0;
                 colaEspera[3][this.apuntadorCola] = 1;
            
             }
@@ -191,6 +193,7 @@ public class Controlador implements Runnable{
                 vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
                 vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
                 vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
+                vectorNucleos[1].numInstruccion = 0;
                 colaEspera[3][this.apuntadorCola2] = 1;
             }
 
@@ -198,6 +201,13 @@ public class Controlador implements Runnable{
             vectorNucleos[0].seguir=false;
             vectorNucleos[1].seguir=false;
             
+            
+            vectorNucleos[1].terminado=false;
+            vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
+            vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
+            vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
+            vectorNucleos[1].numInstruccion = 0;
+            colaEspera[3][this.apuntadorCola2] = 1;
 
             
            //guardo vector de contextos
@@ -215,6 +225,7 @@ public class Controlador implements Runnable{
                 vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
                 vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
                 vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
+                vectorNucleos[0].numInstruccion = 0;
                 Nucleo.quantum=this.quantum;
                 
                 
@@ -230,7 +241,7 @@ public class Controlador implements Runnable{
             
         }
         
-        if(programaTerminado == true ){
+        if(programaTerminado == true) {
             for(int i=0; i<2; i++) {
                 vectorNucleos[i].seguir=false;
             }

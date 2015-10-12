@@ -19,6 +19,7 @@ public class Nucleo implements Runnable {
         //Contexto
 	int PC;
         int[] registros;
+        int numInstruccion;
         
         String IR;
 	Bloque[] cacheInstrucciones;
@@ -62,7 +63,7 @@ public class Nucleo implements Runnable {
                 Nucleo.ciclosReloj = ciclosReloj;
                 this.busInstrucciones = busInstrucciones;
                 this.falloCache = false;
-                this.contCiclosFallo = 80;
+                this.contCiclosFallo = 2;
 	}
 	
 	private void inicializarCaches() {
@@ -74,7 +75,7 @@ public class Nucleo implements Runnable {
 	
 	public void cargarBloque(Bloque b) {
 		cacheInstrucciones[apuntadorCache] = b;
-		if(apuntadorCache<=7) {
+		if(apuntadorCache<7) {
 			apuntadorCache++;
 		} else {
 			apuntadorCache = 0;
@@ -140,7 +141,7 @@ public class Nucleo implements Runnable {
             	contCiclosFallo--;
             	if(contCiclosFallo<=1) {
             		falloCache = false;
-            		contCiclosFallo = 80;
+            		contCiclosFallo = 2;
             		busInstrucciones.release();
             	}
             } else {
@@ -154,13 +155,12 @@ public class Nucleo implements Runnable {
                 }
             }
             
-            this.barrier.await();
-            
+            try {
+            	this.barrier.await();
+            } catch(BrokenBarrierException ex) {}
 
             
             } catch (InterruptedException ex) {
-                Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (BrokenBarrierException ex) {
                 Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
             }
             
@@ -169,7 +169,7 @@ public class Nucleo implements Runnable {
 	
 	public void ejecutarInstruccion() {
             //Bloque donde se encuentra la instruccion apuntada por el PC actual, previamente cargada
-		Bloque b = cacheInstrucciones[PC/4];
+		Bloque b = cacheInstrucciones[numInstruccion/4];
             //Intruccion del bloque (0|1|2|3) 
                 
              //Pido instruccion al cache la guardo en el IR  
