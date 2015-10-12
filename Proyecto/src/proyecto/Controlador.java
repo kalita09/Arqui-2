@@ -22,13 +22,13 @@ public class Controlador implements Runnable{
     int hiloActual2;
     Memoria m;
     CyclicBarrier barrera;
-    Nucleo nucleo1;
-    Nucleo nucleo2;
+
     Nucleo [] vectorNucleos;
     int quantum;
     int ciclosReloj;
     static int numNUCLEOS = 2;
-
+    Thread hilo1;
+    Thread hilo2;
     static Semaphore busInstrucciones;
 
     
@@ -110,8 +110,8 @@ public class Controlador implements Runnable{
             for(int i=0; i<numNUCLEOS; i++) {
                     vectorNucleos[i].imprimirCache();
             }
-            Thread hilo1 = new Thread(vectorNucleos[0]);
-            Thread hilo2 = new Thread(vectorNucleos[1]);
+            hilo1 = new Thread(vectorNucleos[0]);
+            hilo2 = new Thread(vectorNucleos[1]);
             hilo1.start();
             hilo2.start();
             
@@ -160,115 +160,125 @@ public class Controlador implements Runnable{
             
             
             if(Nucleo.quantum == 0){
-                if(vectorNucleos[0].terminado==true){//nucleo 1 termino su hilo
-
-                    //guardo contexto de hilo terminado
-                    this.vectorContextos[this.apuntadorCola].guardarContexto( this.vectorNucleos[0].PC,this.vectorNucleos[0].registros);
-                     colaEspera[3][this.apuntadorCola] = 1;
-
-                    if((this.apuntadorCola+2)<= this.numeroHilos){// si hay hilos por asinar
-
-                        if((this.apuntadorCola)==(this.numeroHilos-2)   ){
-                           this.apuntadorCola=0; 
-
-                        }else{
-                           this.apuntadorCola+=2; 
-                        }
-                        //asignacion de nuevo hilo para el nucleo
-                        vectorNucleos[0].terminado=false;
-                        vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
-                        vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
-                        vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
-                        vectorNucleos[0].numInstruccion = 0;
-
-                    }else{
-                        vectorNucleos[0].seguir=false;
-                    
+                
+                //Nucleo.quantum = this.quantum;
+                
+                 boolean programaTerminado = true;
+                 for(int i=0;i<this.numeroHilos;i++){
+                    if(colaEspera[3][i] != 1){
+                        programaTerminado = false;
                     }
+
+                 }
+
+                if(programaTerminado == true) {
+                     for(int i=0; i<2; i++) {
+                         vectorNucleos[i].seguir=false;
+                     }
 
                 }else{
-                    
-                    //guardo contexto de hilo terminado
-                    this.vectorContextos[this.apuntadorCola].guardarContexto( this.vectorNucleos[0].PC,this.vectorNucleos[0].registros);
-                    
-                    if((this.apuntadorCola+2)<= this.numeroHilos){
 
-                        if((this.apuntadorCola)==(this.numeroHilos-2)   ){
-                           this.apuntadorCola=0; 
+                    Nucleo.quantum = this.quantum;
+                
+                        if(vectorNucleos[0].terminado==true){//nucleo 1 termino su hilo
+
+                            //guardo contexto de hilo terminado
+                            this.vectorContextos[this.apuntadorCola].guardarContexto( this.vectorNucleos[0].PC,this.vectorNucleos[0].registros);
+                             colaEspera[3][this.apuntadorCola] = 1;
+
+                            if((this.apuntadorCola+2)<= this.numeroHilos){// si hay hilos por asinar
+
+                                if((this.apuntadorCola)==(this.numeroHilos-2)   ){
+                                   this.apuntadorCola=0; 
+
+                                }else{
+                                   this.apuntadorCola+=2; 
+                                }
+                                //asignacion de nuevo hilo para el nucleo
+                                vectorNucleos[0].terminado=false;
+                                vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
+                                vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
+                                vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
+                                vectorNucleos[0].numInstruccion = 0;
+
+                            }else{
+                                vectorNucleos[0].seguir=false;
+
+                            }
 
                         }else{
-                           this.apuntadorCola+=2; 
+
+                            //guardo contexto de hilo terminado
+                            this.vectorContextos[this.apuntadorCola].guardarContexto( this.vectorNucleos[0].PC,this.vectorNucleos[0].registros);
+
+                            if((this.apuntadorCola+2)<= this.numeroHilos){
+
+                                if((this.apuntadorCola)==(this.numeroHilos-2)   ){
+                                   this.apuntadorCola=0; 
+
+                                }else{
+                                   this.apuntadorCola+=2; 
+                                }
+                                //asignacion de nuevo hilo para el nucleo
+                                vectorNucleos[0].terminado=false;
+                                vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
+                                vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
+                                vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
+                                vectorNucleos[0].numInstruccion = 0;
+
+                            }
+
                         }
-                        //asignacion de nuevo hilo para el nucleo
-                        vectorNucleos[0].terminado=false;
-                        vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
-                        vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
-                        vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
-                        vectorNucleos[0].numInstruccion = 0;
 
-                    }else{
-                        vectorNucleos[0].seguir=false;
-                    
-                    }
+                        if(vectorNucleos[1].terminado==true){//nucleo 2 termino su hilo
 
-                }
+                            //guardo contexto de hilo terminado
+                            this.vectorContextos[this.apuntadorCola2].guardarContexto( this.vectorNucleos[1].PC,this.vectorNucleos[1].registros);
+                             colaEspera[3][this.apuntadorCola2] = 1;
 
-                if(vectorNucleos[1].terminado==true){//nucleo 2 termino su hilo
+                            if((this.apuntadorCola2+2)<= this.numeroHilos){
 
-                    //guardo contexto de hilo terminado
-                    this.vectorContextos[this.apuntadorCola2].guardarContexto( this.vectorNucleos[1].PC,this.vectorNucleos[1].registros);
-                     colaEspera[3][this.apuntadorCola2] = 1;
+                                if((this.apuntadorCola2)==(this.numeroHilos-1)   ){
+                                   this.apuntadorCola2=0; 
 
-                    if((this.apuntadorCola2+2)<= this.numeroHilos){
+                                }else{
+                                   this.apuntadorCola2+=2; 
+                                }
+                                //asignacion de nuevo hilo para el nucleo
+                                vectorNucleos[1].terminado=false;
+                                vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
+                                vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
+                                vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
+                                vectorNucleos[1].numInstruccion = 0;
 
-                        if((this.apuntadorCola2)==(this.numeroHilos-1)   ){
-                           this.apuntadorCola2=0; 
+                            }
 
                         }else{
-                           this.apuntadorCola2+=2; 
+
+                            //guardo contexto de hilo terminado
+                            this.vectorContextos[this.apuntadorCola2].guardarContexto( this.vectorNucleos[1].PC,this.vectorNucleos[1].registros);
+
+                            if((this.apuntadorCola2+2)<= this.numeroHilos){
+
+                                if((this.apuntadorCola2)==(this.numeroHilos-1)   ){
+                                   this.apuntadorCola2=0; 
+
+                                }else{
+                                   this.apuntadorCola2+=2; 
+                                }
+                                //asignacion de nuevo hilo para el nucleo
+                                vectorNucleos[1].terminado=false;
+                                vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
+                                vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
+                                vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
+                                vectorNucleos[1].numInstruccion = 0;
+
+                            }
+
                         }
-                        //asignacion de nuevo hilo para el nucleo
-                        vectorNucleos[1].terminado=false;
-                        vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
-                        vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
-                        vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
-                        vectorNucleos[1].numInstruccion = 0;
-
-                    }else{
-                        vectorNucleos[1].seguir=false;
-                    
-                    }
-
-                }else{
-                    
-                    //guardo contexto de hilo terminado
-                    this.vectorContextos[this.apuntadorCola2].guardarContexto( this.vectorNucleos[1].PC,this.vectorNucleos[1].registros);
-                    
-                    if((this.apuntadorCola2+2)<= this.numeroHilos){
-
-                        if((this.apuntadorCola2)==(this.numeroHilos-1)   ){
-                           this.apuntadorCola2=0; 
-
-                        }else{
-                           this.apuntadorCola2+=2; 
-                        }
-                        //asignacion de nuevo hilo para el nucleo
-                        vectorNucleos[1].terminado=false;
-                        vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
-                        vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
-                        vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
-                        vectorNucleos[1].numInstruccion = 0;
-
-                    }else{
-                        vectorNucleos[1].seguir=false;
-                    
-                    }
-
-                }
-                //Nucleo.quantum
-                
-                
-                
+                        
+                 }
+               // 
                 
             }else{//quantum no es cero
                if(vectorNucleos[0].terminado==true){//nucleo 1 termino su hilo
@@ -292,9 +302,6 @@ public class Controlador implements Runnable{
                         vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
                         vectorNucleos[0].numInstruccion = 0;
 
-                    }else{
-                        vectorNucleos[0].seguir=false;
-                    
                     }
 
                 }
@@ -322,16 +329,13 @@ public class Controlador implements Runnable{
                         vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
                         vectorNucleos[1].numInstruccion = 0;
 
-                    }else{
-                        vectorNucleos[1].seguir=false;
-                    
                     }
    
                 }
 
             } 
             
-            
+
             
          
         }
