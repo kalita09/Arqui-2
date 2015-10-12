@@ -16,7 +16,7 @@ public class Main {
         
 
 
-        Controlador controlador = new Controlador(3,700);
+        Controlador controlador = new Controlador(2,700);
 
         controlador.iniciar();
   

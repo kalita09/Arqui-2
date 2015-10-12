@@ -42,7 +42,7 @@ public class Controlador implements Runnable{
             hiloActual1 = 1;
             hiloActual2 = 2;
             this.quantum = quantum;
-            this.ciclosReloj = ciclosReloj;
+            this.ciclosReloj = 0;
 
             this.busInstrucciones = new Semaphore(1);
 
@@ -81,8 +81,8 @@ public class Controlador implements Runnable{
             //iniciar vector de nucleos
 
 
-            vectorNucleos[0] = new Nucleo("Nucleo 1",barrera,this.m,colaEspera[0][this.apuntadorCola],colaEspera[2][this.apuntadorCola],this.quantum,this.busInstrucciones);
-            vectorNucleos[1] = new Nucleo("Nucleo 2",barrera,this.m,colaEspera[0][this.apuntadorCola2],colaEspera[2][this.apuntadorCola2],this.quantum,this.busInstrucciones);
+            vectorNucleos[0] = new Nucleo("Nucleo 1",barrera,this.m,colaEspera[0][this.apuntadorCola],colaEspera[2][this.apuntadorCola],this.quantum,this.ciclosReloj,this.busInstrucciones);
+            vectorNucleos[1] = new Nucleo("Nucleo 2",barrera,this.m,colaEspera[0][this.apuntadorCola2],colaEspera[2][this.apuntadorCola2],this.quantum,this.ciclosReloj,this.busInstrucciones);
 
 
             
@@ -133,9 +133,18 @@ public class Controlador implements Runnable{
      public void run() {
          
         System.out.println("Todos han llegado a la barrera");
-        Nucleo.quantum--;
-        System.out.println("Quantum"+Nucleo.quantum);
         
+        //si no estan en fallo de cache los dos nucleos entraron en el 
+        //primer caso del if donde ejecutan una instruccion, por lo tanto se resta quantum
+        if(!vectorNucleos[0].falloCache && !vectorNucleos[1].falloCache){
+            Nucleo.quantum--;
+            Nucleo.ciclosReloj++;
+        }else{
+            Nucleo.ciclosReloj++;
+        }
+        
+        System.out.println("Quantum"+Nucleo.quantum);
+        System.out.println("Ciclo reloj"+Nucleo.ciclosReloj);
         System.out.println("Despues registro");
             for(int i=0; i<2; i++) {
                     System.out.println("Nucleo "+i);
@@ -149,97 +158,181 @@ public class Controlador implements Runnable{
                     vectorNucleos[i].imprimirCache();
             }
             
-            if(vectorNucleos[0].terminado==true){//nucleo 1 termino su hilo
-                
-                //guardo contexto de hilo terminado
-                this.vectorContextos[this.apuntadorCola].guardarContexto( this.vectorNucleos[0].PC,this.vectorNucleos[0].registros);
-                
-                if((this.apuntadorCola+2)==(this.numeroHilos-2)){
-                   this.apuntadorCola=0; 
-                
-                }else{
-                   this.apuntadorCola++; 
-                }
-                //asignacion de nuevo hilo para el nucleo
-                vectorNucleos[0].terminado=false;
-                vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
-                vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
-                vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
-                vectorNucleos[0].numInstruccion = 0;
-                colaEspera[3][this.apuntadorCola] = 1;
-           
-            }
             
-            if(vectorNucleos[1].terminado==true){//nucleo 2 termino su hilo
+            if(Nucleo.quantum == 0){
+                if(vectorNucleos[0].terminado==true){//nucleo 1 termino su hilo
+
+                    //guardo contexto de hilo terminado
+                    this.vectorContextos[this.apuntadorCola].guardarContexto( this.vectorNucleos[0].PC,this.vectorNucleos[0].registros);
+                     colaEspera[3][this.apuntadorCola] = 1;
+
+                    if((this.apuntadorCola+2)<= this.numeroHilos){// si hay hilos por asinar
+
+                        if((this.apuntadorCola)==(this.numeroHilos-2)   ){
+                           this.apuntadorCola=0; 
+
+                        }else{
+                           this.apuntadorCola+=2; 
+                        }
+                        //asignacion de nuevo hilo para el nucleo
+                        vectorNucleos[0].terminado=false;
+                        vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
+                        vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
+                        vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
+                        vectorNucleos[0].numInstruccion = 0;
+
+                    }else{
+                        vectorNucleos[0].seguir=false;
+                    
+                    }
+
+                }else{
+                    
+                    //guardo contexto de hilo terminado
+                    this.vectorContextos[this.apuntadorCola].guardarContexto( this.vectorNucleos[0].PC,this.vectorNucleos[0].registros);
+                    
+                    if((this.apuntadorCola+2)<= this.numeroHilos){
+
+                        if((this.apuntadorCola)==(this.numeroHilos-2)   ){
+                           this.apuntadorCola=0; 
+
+                        }else{
+                           this.apuntadorCola+=2; 
+                        }
+                        //asignacion de nuevo hilo para el nucleo
+                        vectorNucleos[0].terminado=false;
+                        vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
+                        vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
+                        vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
+                        vectorNucleos[0].numInstruccion = 0;
+
+                    }else{
+                        vectorNucleos[0].seguir=false;
+                    
+                    }
+
+                }
+
+                if(vectorNucleos[1].terminado==true){//nucleo 2 termino su hilo
+
+                    //guardo contexto de hilo terminado
+                    this.vectorContextos[this.apuntadorCola2].guardarContexto( this.vectorNucleos[1].PC,this.vectorNucleos[1].registros);
+                     colaEspera[3][this.apuntadorCola2] = 1;
+
+                    if((this.apuntadorCola2+2)<= this.numeroHilos){
+
+                        if((this.apuntadorCola2)==(this.numeroHilos-1)   ){
+                           this.apuntadorCola2=0; 
+
+                        }else{
+                           this.apuntadorCola2+=2; 
+                        }
+                        //asignacion de nuevo hilo para el nucleo
+                        vectorNucleos[1].terminado=false;
+                        vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
+                        vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
+                        vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
+                        vectorNucleos[1].numInstruccion = 0;
+
+                    }else{
+                        vectorNucleos[1].seguir=false;
+                    
+                    }
+
+                }else{
+                    
+                    //guardo contexto de hilo terminado
+                    this.vectorContextos[this.apuntadorCola2].guardarContexto( this.vectorNucleos[1].PC,this.vectorNucleos[1].registros);
+                    
+                    if((this.apuntadorCola2+2)<= this.numeroHilos){
+
+                        if((this.apuntadorCola2)==(this.numeroHilos-1)   ){
+                           this.apuntadorCola2=0; 
+
+                        }else{
+                           this.apuntadorCola2+=2; 
+                        }
+                        //asignacion de nuevo hilo para el nucleo
+                        vectorNucleos[1].terminado=false;
+                        vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
+                        vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
+                        vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
+                        vectorNucleos[1].numInstruccion = 0;
+
+                    }else{
+                        vectorNucleos[1].seguir=false;
+                    
+                    }
+
+                }
+                //Nucleo.quantum
+                
+                
+                
+                
+            }else{//quantum no es cero
+               if(vectorNucleos[0].terminado==true){//nucleo 1 termino su hilo
+
+                    //guardo contexto de hilo terminado
+                    this.vectorContextos[this.apuntadorCola].guardarContexto( this.vectorNucleos[0].PC,this.vectorNucleos[0].registros);
+                     colaEspera[3][this.apuntadorCola] = 1;
+
+                    if((this.apuntadorCola+2)<= this.numeroHilos){
+
+                        if((this.apuntadorCola)==(this.numeroHilos-2)   ){
+                           this.apuntadorCola=0; 
+
+                        }else{
+                           this.apuntadorCola+=2; 
+                        }
+                        //asignacion de nuevo hilo para el nucleo
+                        vectorNucleos[0].terminado=false;
+                        vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
+                        vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
+                        vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
+                        vectorNucleos[0].numInstruccion = 0;
+
+                    }else{
+                        vectorNucleos[0].seguir=false;
+                    
+                    }
+
+                }
+               
+               
+               
+                if(vectorNucleos[1].terminado==true){//nucleo 2 termino su hilo
+                
                 //guardo contexto de hilo terminado
                 this.vectorContextos[this.apuntadorCola2].guardarContexto( this.vectorNucleos[1].PC,this.vectorNucleos[1].registros);
+                 colaEspera[3][this.apuntadorCola2] = 1;
                 
-                
-                if((this.apuntadorCola2+2)==(this.numeroHilos-1)){
-                   this.apuntadorCola2=1; 
-                
-                }else{
-                   this.apuntadorCola2++; 
-                }
-                 //asignacion de nuevo hilo para el nucleo
-                vectorNucleos[1].terminado=false;
-                vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
-                vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
-                vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
-                vectorNucleos[1].numInstruccion = 0;
-                colaEspera[3][this.apuntadorCola2] = 1;
-            }
+                    if((this.apuntadorCola2+2)<= this.numeroHilos){
 
-        if(Nucleo.quantum == 0){
-            vectorNucleos[0].seguir=false;
-            vectorNucleos[1].seguir=false;
-            
-            
-            vectorNucleos[1].terminado=false;
-            vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
-            vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
-            vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
-            vectorNucleos[1].numInstruccion = 0;
-            colaEspera[3][this.apuntadorCola2] = 1;
+                        if((this.apuntadorCola2)==(this.numeroHilos-1)   ){
+                           this.apuntadorCola2=0; 
 
-            
-           //guardo vector de contextos
-            this.vectorContextos[this.apuntadorCola].guardarContexto( this.vectorNucleos[0].PC,this.vectorNucleos[0].registros);
-            this.vectorContextos[this.apuntadorCola2].guardarContexto( this.vectorNucleos[1].PC,this.vectorNucleos[1].registros);
-                   
-                if((this.apuntadorCola+2)==(this.numeroHilos-2)){
-                   this.apuntadorCola=0; 
-                
-                }else{
-                   this.apuntadorCola++; 
+                        }else{
+                           this.apuntadorCola2+=2; 
+                        }
+                        //asignacion de nuevo hilo para el nucleo
+                        vectorNucleos[1].terminado=false;
+                        vectorNucleos[1].setContexto(this.vectorContextos[this.apuntadorCola2].PC,this.vectorContextos[this.apuntadorCola2].registros);
+                        vectorNucleos[1].bloqueInicio = colaEspera[0][this.apuntadorCola2];
+                        vectorNucleos[1].setPCFin(colaEspera[2][this.apuntadorCola2]);
+                        vectorNucleos[1].numInstruccion = 0;
+
+                    }else{
+                        vectorNucleos[1].seguir=false;
+                    
+                    }
+   
                 }
-                //asignacion de nuevo hilo para el nucleo
-          
-                vectorNucleos[0].setContexto(this.vectorContextos[this.apuntadorCola].PC,this.vectorContextos[this.apuntadorCola].registros);
-                vectorNucleos[0].bloqueInicio = colaEspera[0][this.apuntadorCola];
-                vectorNucleos[0].setPCFin(colaEspera[2][this.apuntadorCola]);
-                vectorNucleos[0].numInstruccion = 0;
-                Nucleo.quantum=this.quantum;
-                
-                
-               
-                
-        }
-        
-        boolean programaTerminado = true;
-        for(int i=0;i<this.numeroHilos;i++){
-            if(colaEspera[3][i] != 1){
-                programaTerminado = false;
-            }
+
+            } 
             
-        }
-        
-        if(programaTerminado == true) {
-            for(int i=0; i<2; i++) {
-                vectorNucleos[i].seguir=false;
-            }
-        
-        }
+            
+            
          
         }
         

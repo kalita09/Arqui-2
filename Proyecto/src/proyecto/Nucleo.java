@@ -44,7 +44,7 @@ public class Nucleo implements Runnable {
         boolean falloCache;
         int contCiclosFallo;
         
-	public Nucleo(String nombre, CyclicBarrier barrier,Memoria memoria,int bloqueInicio,int pcFin,int quantum, Semaphore busInstrucciones) {
+	public Nucleo(String nombre, CyclicBarrier barrier,Memoria memoria,int bloqueInicio,int pcFin,int quantum,int ciclosReloj, Semaphore busInstrucciones) {
 
 		this.nombreNucleo = nombre;
                 this.barrier = barrier;
@@ -161,6 +161,9 @@ public class Nucleo implements Runnable {
 
             if(this.contenerBloque() && !this.falloCache) {
                 this.ejecutarInstruccion();
+                if(this.PC > this.pcFin){
+                    this.terminado = true;
+                }
             } else if(this.falloCache) {
             	contCiclosFallo--;
             	if(contCiclosFallo<=1) {
@@ -194,6 +197,14 @@ public class Nucleo implements Runnable {
             }
             
         }
+        
+            try {
+                this.barrier.await();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (BrokenBarrierException ex) {
+                Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
+            }
     }
 	
 	public void ejecutarInstruccion() {
