@@ -57,12 +57,16 @@ public class Bloque {
 
             for(int j=0; j<COLUMNAS; j++) {
                 //System.out.println(numeroInstruccion+"."+codificacion[j]+".");
-                if((codificacion[j]=="")||(codificacion[j]==null)){
+                //if((codificacion[j]==null)||(codificacion[j]=="")){
                 //System.out.print("Vacio");
-                }else{
-                 instrucciones [numeroInstruccion][j] = Integer.parseInt(codificacion[j].trim());
-               // System.out.println("ENTRO"+numeroInstruccion+codificacion[j]);
-                }
+                //}else{
+                	try {
+                    	instrucciones [numeroInstruccion][j] = Integer.parseInt(codificacion[j].trim());
+                    	System.out.println("ENTRO"+numeroInstruccion+codificacion[j]);
+                    	} catch(NumberFormatException | ArrayIndexOutOfBoundsException ex) {
+                    		System.out.println("Intentando acceder posicion invalida del vector");
+                    	}
+                //}
 
            }
  

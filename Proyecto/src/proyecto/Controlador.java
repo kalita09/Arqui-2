@@ -6,6 +6,7 @@
 package proyecto;
 
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
 
 /**
  *
@@ -28,6 +29,7 @@ public class Controlador implements Runnable{
     int ciclosReloj;
     static int numNUCLEOS = 2;
 
+    static Semaphore busInstrucciones;
     
 	public Controlador(int tamanoCola,int quantum) {
             colaEspera = new int[4][tamanoCola];
@@ -40,7 +42,7 @@ public class Controlador implements Runnable{
             hiloActual2 = 2;
             this.quantum = quantum;
             this.ciclosReloj = ciclosReloj;
-            
+            this.busInstrucciones = new Semaphore(1);
 	}
 	
         void iniciar(){
@@ -85,8 +87,10 @@ public class Controlador implements Runnable{
             
             //iniciar vector de nucleos
 
-            vectorNucleos[0] = new Nucleo("Nucleo 1",barrera,this.m,colaEspera[0][this.apuntadorCola],colaEspera[2][this.apuntadorCola],this.quantum);
-            vectorNucleos[1] = new Nucleo("Nucleo 2",barrera,this.m,colaEspera[0][this.apuntadorCola2],colaEspera[2][this.apuntadorCola2],this.quantum);
+
+            vectorNucleos[0] = new Nucleo("Nucleo 1",barrera,this.m,colaEspera[0][this.apuntadorCola],colaEspera[2][this.apuntadorCola],this.quantum,this.busInstrucciones);
+            vectorNucleos[1] = new Nucleo("Nucleo 2",barrera,this.m,colaEspera[0][this.apuntadorCola2],colaEspera[2][this.apuntadorCola2],this.quantum,this.busInstrucciones);
+
 
             
     
@@ -103,13 +107,13 @@ public class Controlador implements Runnable{
             
 
             System.out.println("Antes registro");
-            for(int i=0; i<numeroHilos; i++) {
+            for(int i=0; i<numNUCLEOS; i++) {
                     vectorNucleos[i].imprimirRegistros();
             }
             
             this.m.imprimirMem();
             System.out.println("Antes cache");
-            for(int i=0; i<numeroHilos; i++) {
+            for(int i=0; i<numNUCLEOS; i++) {
                     vectorNucleos[i].imprimirCache();
             }
             Thread hilo1 = new Thread(vectorNucleos[0]);

@@ -14,7 +14,9 @@ import java.util.concurrent.CyclicBarrier;
 public class Main {
     public static void main(String[] args) throws Exception {
         
-        Controlador controlador = new Controlador(2,10);
+
+        Controlador controlador = new Controlador(2,500);
+
         controlador.iniciar();
   
 
