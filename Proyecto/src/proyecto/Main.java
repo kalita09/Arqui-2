@@ -15,7 +15,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         
 
-        Controlador controlador = new Controlador(3,20);
+        Controlador controlador = new Controlador(3,500);
 
         controlador.iniciar();
   

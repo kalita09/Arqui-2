@@ -63,7 +63,7 @@ public class Nucleo implements Runnable {
                 Nucleo.ciclosReloj = ciclosReloj;
                 this.busInstrucciones = busInstrucciones;
                 this.falloCache = false;
-                this.contCiclosFallo = 2;
+                this.contCiclosFallo = 80;
 	}
 	
 	private void inicializarCaches() {
@@ -141,15 +141,15 @@ public class Nucleo implements Runnable {
             	contCiclosFallo--;
             	if(contCiclosFallo<=1) {
             		falloCache = false;
-            		contCiclosFallo = 2;
+            		contCiclosFallo = 80;
             		busInstrucciones.release();
             	}
             } else {
-            	Bloque b1 = this.memoria.getBloque(this.bloqueInicio+this.PC/4);
-            	cargarBloque(b1);
-            	System.out.print("cargando"+this.bloqueInicio+this.PC/4+".");
-            	System.out.print("hay fallo");                
                 if(busInstrucciones.tryAcquire()){
+                	Bloque b1 = this.memoria.getBloque(this.bloqueInicio+this.PC/4);
+                	cargarBloque(b1);
+                	System.out.print("cargando"+this.bloqueInicio+this.PC/4+".");
+                	System.out.print("hay fallo");
                 	falloCache = true;
                     contCiclosFallo--;
                 }
