@@ -26,13 +26,15 @@ public class Controlador implements Runnable{
     Nucleo [] vectorNucleos;
     int quantum;
     int ciclosReloj;
+    int cicloBus;
+    int latenciaMem;
     static int numNUCLEOS = 2;
     Thread hilo1;
     Thread hilo2;
     static Semaphore busInstrucciones;
 
     
-	public Controlador(int tamanoCola,int quantum) {
+	public Controlador(int tamanoCola,int quantum, int cicloBus,int latenciaMem) {
             colaEspera = new int[4][tamanoCola];
             this.vectorContextos = new Contexto [tamanoCola];
             this.vectorNucleos = new Nucleo [tamanoCola];
@@ -43,6 +45,8 @@ public class Controlador implements Runnable{
             hiloActual2 = 2;
             this.quantum = quantum;
             this.ciclosReloj = 0;
+            this.cicloBus = cicloBus;
+            this.latenciaMem = latenciaMem;
 
             this.busInstrucciones = new Semaphore(1);
 
@@ -81,8 +85,8 @@ public class Controlador implements Runnable{
             //iniciar vector de nucleos
 
 
-            vectorNucleos[0] = new Nucleo("Nucleo 1",barrera,this.m,colaEspera[0][this.apuntadorCola],colaEspera[2][this.apuntadorCola],this.quantum,this.ciclosReloj,this.busInstrucciones);
-            vectorNucleos[1] = new Nucleo("Nucleo 2",barrera,this.m,colaEspera[0][this.apuntadorCola2],colaEspera[2][this.apuntadorCola2],this.quantum,this.ciclosReloj,this.busInstrucciones);
+            vectorNucleos[0] = new Nucleo("Nucleo 1",barrera,this.m,colaEspera[0][this.apuntadorCola],colaEspera[2][this.apuntadorCola],this.quantum,this.ciclosReloj,this.cicloBus,this.latenciaMem,this.busInstrucciones);
+            vectorNucleos[1] = new Nucleo("Nucleo 2",barrera,this.m,colaEspera[0][this.apuntadorCola2],colaEspera[2][this.apuntadorCola2],this.quantum,this.ciclosReloj,this.cicloBus,this.latenciaMem,this.busInstrucciones);
 
 
             

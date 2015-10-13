@@ -39,12 +39,13 @@ public class Nucleo implements Runnable {
         static int ciclosReloj;
         static Semaphore busInstrucciones;
         int pcFin;
-
+        int cicloBusCache;
+        int latenciaMem;
 
         boolean falloCache;
         int contCiclosFallo;
         
-	public Nucleo(String nombre, CyclicBarrier barrier,Memoria memoria,int bloqueInicio,int pcFin,int quantum,int ciclosReloj, Semaphore busInstrucciones) {
+	public Nucleo(String nombre, CyclicBarrier barrier,Memoria memoria,int bloqueInicio,int pcFin,int quantum,int ciclosReloj,int cicloBus, int latenciaMem,Semaphore busInstrucciones) {
 
 		this.nombreNucleo = nombre;
                 this.barrier = barrier;
@@ -63,7 +64,9 @@ public class Nucleo implements Runnable {
                 Nucleo.ciclosReloj = ciclosReloj;
                 this.busInstrucciones = busInstrucciones;
                 this.falloCache = false;
-                this.contCiclosFallo = 80;
+                this.latenciaMem = latenciaMem;
+                this.cicloBusCache = (cicloBus+this.latenciaMem+cicloBus)*4;
+                this.contCiclosFallo = this.cicloBusCache;
 	}
 	
 	private void inicializarCaches() {
@@ -167,7 +170,7 @@ public class Nucleo implements Runnable {
             	contCiclosFallo--;
             	if(contCiclosFallo<=1) {
             		falloCache = false;
-            		contCiclosFallo = 80;
+            		contCiclosFallo = this.cicloBusCache;
             		busInstrucciones.release();
             	}
             } else {
@@ -197,13 +200,7 @@ public class Nucleo implements Runnable {
             
         }
         
-            try {
-                this.barrier.await();
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (BrokenBarrierException ex) {
-                Logger.getLogger(Nucleo.class.getName()).log(Level.SEVERE, null, ex);
-            }
+
     }
 	
 	public void ejecutarInstruccion() {
