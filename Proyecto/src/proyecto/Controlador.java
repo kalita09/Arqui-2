@@ -138,9 +138,9 @@ public class Controlador implements Runnable{
          
         System.out.println("Todos han llegado a la barrera");
         
-        //si no estan en fallo de cache los dos nucleos entraron en el 
+        //si alguno de los dos no estan en fallo de cache uno de los nucleos entro en el 
         //primer caso del if donde ejecutan una instruccion, por lo tanto se resta quantum
-        if(!vectorNucleos[0].falloCache && !vectorNucleos[1].falloCache){
+        if(!vectorNucleos[0].falloCache || !vectorNucleos[1].falloCache){
             Nucleo.quantum--;
             Nucleo.ciclosReloj++;
         }else{

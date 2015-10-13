@@ -177,6 +177,7 @@ public class Nucleo implements Runnable {
 
 
                 if(busInstrucciones.tryAcquire()){
+                   
                 	Bloque b1 = this.memoria.getBloque(this.bloqueInicio+this.PC/4);
                 	cargarBloque(b1);
                 	System.out.print("cargando"+this.bloqueInicio+this.PC/4+".");
@@ -206,7 +207,7 @@ public class Nucleo implements Runnable {
 	public void ejecutarInstruccion() {
             //Bloque donde se encuentra la instruccion apuntada por el PC actual, previamente cargada
 
-		Bloque b = cacheInstrucciones[(this.PC/4)%this.BLOQUES];
+		Bloque b = cacheInstrucciones[((this.PC/4)%this.BLOQUES)+this.bloqueInicio  ];
 
 		//Bloque b = cacheInstrucciones[numInstruccion/4];
 
@@ -214,7 +215,7 @@ public class Nucleo implements Runnable {
                 
              //Pido instruccion al cache la guardo en el IR  
 		IR = b.getInstruccion(this.PC%4);
-             
+                System.out.println(IR);
 		String[] codificacion = IR.split(" ");
 		System.out.println(codificacion[0]);
                 
